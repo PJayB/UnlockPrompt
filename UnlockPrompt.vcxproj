@@ -60,6 +60,9 @@
       <SubSystem>Console</SubSystem>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>UnlockPrompt.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -76,6 +79,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>UnlockPrompt.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -87,6 +93,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="UnlockPrompt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="UnlockPrompt.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
