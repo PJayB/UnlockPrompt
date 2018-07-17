@@ -90,23 +90,48 @@ int UnlockDrive(const TCHAR* drive)
     }
 }
 
+void Info(const TCHAR* text, ...)
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 10);
+    va_list v;
+    va_start(v, text);
+    vwprintf_s(text, v);
+    va_end(v);
+    SetConsoleTextAttribute(hConsole, 15);
+}
+
+void Error(const TCHAR* text, ...)
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 12);
+    va_list v;
+    va_start(v, text);
+    vwprintf_s(text, v);
+    va_end(v);
+    SetConsoleTextAttribute(hConsole, 15);
+}
+
 void WaitForInput()
 {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 10);
     wprintf(_T("Press any key to continue...\n"));
     _getch();
+    SetConsoleTextAttribute(hConsole, 15);
 }
 
 int wmain(int argc, TCHAR** argv)
 {
     if (argc < 2)
     {
-        wprintf(L"Usage: %s <drive:> [<drive2:>...]\n", argv[0]);
+        Error(L"Usage: %s <drive:> [<drive2:>...]\n", argv[0]);
         return ExitInvalidArgs;
     }
 
     if (!IsElevated())
     {
-        wprintf(L"Please run this command in elevated mode.\n");
+        Error(L"Please run this command in elevated mode.\n");
         return ExitNeedPrivileges;
     }
 
@@ -121,7 +146,7 @@ int wmain(int argc, TCHAR** argv)
                 waitForInput = true;
             else
             {
-                wprintf(_T("Unknown switch: '%s'.\n"), argv[i]);
+                Error(_T("Unknown switch: '%s'.\n"), argv[i]);
                 return ExitInvalidArgs;
             }
         }
@@ -133,11 +158,11 @@ int wmain(int argc, TCHAR** argv)
 
     for (auto drive : drives)
     {
-        wprintf(_T("Unlocking %s...\n"), drive.c_str());
+        Info(_T("Unlocking %s...\n"), drive.c_str());
         int r = UnlockDrive(drive.c_str());
         if (r != ExitOK)
         {
-            wprintf(_T("Unlocking %s failed (%d).\n"), drive.c_str(), r);
+            Error(_T("Unlocking %s failed (%d).\n"), drive.c_str(), r);
             if (waitForInput) WaitForInput();
             return r;
         }
