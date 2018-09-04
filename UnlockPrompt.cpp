@@ -10,7 +10,8 @@ enum ExitErrors
     ExitNeedPrivileges,
     ExitFailedToSpawn,
     ExitFailedToWait,
-    ExitManageBdeFailed
+    ExitManageBdeFailed,
+    ExitIncorrectPassword
 };
 
 // from: http://stackoverflow.com/questions/8046097/how-to-check-if-a-process-has-the-administrative-rights
@@ -84,6 +85,8 @@ int UnlockDrive(const TCHAR* drive)
     case -1:
         // Already unlocked
         return ExitOK;
+    case FVE_E_FAILED_AUTHENTICATION:
+        return ExitIncorrectPassword;
     default:
         // HRESULT of failure
         return ExitManageBdeFailed;
@@ -136,6 +139,7 @@ int wmain(int argc, TCHAR** argv)
     }
 
     bool waitForInput = false;
+    bool retryOnIncorrectPassword = true;
     std::vector<std::wstring> drives;
 
     for (int i = 1; i < argc; ++i)
@@ -144,6 +148,8 @@ int wmain(int argc, TCHAR** argv)
         {
             if (_wcsicmp(L"-wait", argv[i]) == 0)
                 waitForInput = true;
+            else if (_wcsicmp(L"-noretry", argv[i]) == 0)
+                retryOnIncorrectPassword = false;
             else
             {
                 Error(_T("Unknown switch: '%s'.\n"), argv[i]);
@@ -159,12 +165,18 @@ int wmain(int argc, TCHAR** argv)
     for (auto drive : drives)
     {
         Info(_T("Unlocking %s...\n"), drive.c_str());
-        int r = UnlockDrive(drive.c_str());
-        if (r != ExitOK)
+        while (true)
         {
-            Error(_T("Unlocking %s failed (%d).\n"), drive.c_str(), r);
-            if (waitForInput) WaitForInput();
-            return r;
+            int r = UnlockDrive(drive.c_str());
+            if (r == ExitIncorrectPassword && retryOnIncorrectPassword)
+                continue;
+            else if (r != ExitOK)
+            {
+                Error(_T("Unlocking %s failed (%d).\n"), drive.c_str(), r);
+                if (waitForInput) WaitForInput();
+                return r;
+            }
+            break;
         }
     }
 
